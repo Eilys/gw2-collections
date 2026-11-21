@@ -6,6 +6,7 @@ import { collectionNames, collectionNamesFr, exclusions } from "./data/collectio
 import { buildCollections } from "./logic/collections";
 import CollectionDetailPage from "./pages/CollectionDetailPage";
 import CollectionsPage from "./pages/CollectionsPage";
+import MarketSummary from "./components/MarketSummary";
 
 const NO_SKINS = new Set<number>();
 
@@ -60,50 +61,48 @@ export default function App() {
 
     return (
         <div className="mx-auto max-w-5xl space-y-4 p-4 sm:p-6">
-            <header className="flex flex-wrap items-center justify-between gap-3">
-                <h1 className="text-xl font-semibold">Collections GW2</h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Prix mis à jour à {updatedAt}
-                    {prices.isFetching && " · actualisation…"}
-                </p>
+            <header className="flex flex-nowrap items-center justify-between gap-3">
+                <h2 className="text-xl font-semibold text-red-600!">Collections GW2</h2>
+                <div className="space-y-1">
+                    {apiKey ? (
+                        <div className="flex items-center gap-3 text-sm">
+                            <span className="text-gray-600 dark:text-gray-300">
+                                Clé API enregistrée dans ce navigateur.
+                            </span>
+                            <button
+                                onClick={removeKey}
+                                className="cursor-pointer rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
+                            >
+                                Supprimer
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="flex w-full items-center gap-2 sm:w-auto">
+                            <input
+                                type="password"
+                                placeholder="Clé API (permissions account et unlocks)"
+                                value={keyInput}
+                                onChange={(e) => setKeyInput(e.target.value)}
+                                className="min-w-0 flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm sm:w-80 sm:flex-none dark:border-gray-600 dark:bg-gray-900"
+                            />
+                            <button
+                                onClick={submitKey}
+                                className="shrink-0 cursor-pointer rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                            >
+                                Enregistrer
+                            </button>
+                        </div>
+                    )}
+                    {skins.isError && (
+                        <p className="text-sm text-red-600 dark:text-red-400">
+                            Erreur avec la clé : {skins.error.message}
+                        </p>
+                    )}
+                </div>
             </header>
 
-            <section className="space-y-2">
-                {apiKey ? (
-                    <div className="flex items-center gap-3 text-sm">
-                        <span className="text-gray-600 dark:text-gray-300">
-                            Clé API enregistrée dans ce navigateur.
-                        </span>
-                        <button
-                            onClick={removeKey}
-                            className="cursor-pointer rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
-                        >
-                            Supprimer
-                        </button>
-                    </div>
-                ) : (
-                    <div className="flex flex-wrap gap-2">
-                        <input
-                            type="password"
-                            placeholder="Clé API (permissions account et unlocks)"
-                            value={keyInput}
-                            onChange={(e) => setKeyInput(e.target.value)}
-                            className="w-full max-w-md rounded-md border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-900"
-                        />
-                        <button
-                            onClick={submitKey}
-                            className="cursor-pointer rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
-                        >
-                            Enregistrer
-                        </button>
-                    </div>
-                )}
-                {skins.isError && (
-                    <p className="text-sm text-red-600 dark:text-red-400">
-                        Erreur avec la clé : {skins.error.message}
-                    </p>
-                )}
-            </section>
+            <MarketSummary />
+
 
             <Routes>
                 <Route
@@ -115,6 +114,13 @@ export default function App() {
                     element={<CollectionDetailPage collections={collections} hasKey={!!skins.data} />}
                 />
             </Routes>
+
+            <footer className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Prix mis à jour à {updatedAt}
+                    {prices.isFetching && " · actualisation…"}
+                </p>
+            </footer>
         </div>
     );
 }

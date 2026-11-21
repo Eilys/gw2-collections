@@ -17,7 +17,7 @@ export const collectionNames: string[] = [
     "Timekeeper", "Tormented", "Venombite", "Vinelord Edgebloom", "Void Corrupted",
     "War God's", "White Tiger", "Winter's", "Wintersday", "Zodiac",
     "Dragon Essence", "Imperial Everbloom", "Shade-Touched", "Calligrapher's",
-    "Painter's Brilliance", "Synergetics",
+    "Painter's Brilliance", "Synergetics", "Primeval",
 ];
 
 // Items à retirer d'une collection quand leur nom contient aussi un autre nom de la liste
@@ -117,4 +117,5 @@ export const collectionNamesFr: Record<string, string> = {
     "Calligrapher's": "Calligraphe", // 17/17
     "Painter's Brilliance": "Peintre brillant", // 17/17 | autres : peintre (17/17) | brillant (17/17)
     "Synergetics": "Synergétique", // 17/17
+    "Primeval": "Primitif", // 11/17 ⚠ à vérifier
 };

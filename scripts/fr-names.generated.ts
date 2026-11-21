@@ -90,4 +90,5 @@ export const collectionNamesFr: Record<string, string> = {
   "Calligrapher's": "Calligraphe", // 17/17
   "Painter's Brilliance": "Peintre brillant", // 17/17 | autres : peintre (17/17) | brillant (17/17)
   "Synergetics": "Synergétique", // 17/17
+  "Primeval": "Primitif", // 11/17 ⚠ à vérifier
 };

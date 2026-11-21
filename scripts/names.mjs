@@ -17,5 +17,5 @@ export const collectionNames = [
     "Timekeeper", "Tormented", "Venombite", "Vinelord Edgebloom", "Void Corrupted",
     "War God's", "White Tiger", "Winter's", "Wintersday", "Zodiac",
     "Dragon Essence", "Imperial Everbloom", "Shade-Touched", "Calligrapher's",
-    "Painter's Brilliance", "Synergetics",
+    "Painter's Brilliance", "Synergetics","Primeval",
 ];
