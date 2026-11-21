@@ -1,61 +1,99 @@
+import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
+import type { ColumnDef } from "@tanstack/react-table";
+import DataTable from "../components/DataTable";
+import OwnershipBadge from "../components/OwnershipBadge";
 import { formatGold } from "../logic/format";
-import type { CollectionSummary } from "../types";
+import type { CollectionSummary, ItemRow } from "../types";
 
 interface Props {
     collections: CollectionSummary[];
     hasKey: boolean;
 }
 
+function priceCell(value: number) {
+    return <span className="tabular-nums">{value ? formatGold(value) : "—"}</span>;
+}
+
 export default function CollectionDetailPage({ collections, hasKey }: Props) {
     const { name } = useParams();
     const collection = collections.find((c) => c.name === name);
 
+    const columns = useMemo<ColumnDef<ItemRow>[]>(
+        () => [
+            {
+                id: "icon",
+                header: "",
+                enableSorting: false,
+                accessorFn: (r) => r.item.icon,
+                cell: ({ row }) =>
+                    row.original.item.icon ? (
+                        <img src={row.original.item.icon} alt="" width={32} height={32} loading="lazy" className="rounded" />
+                    ) : null,
+            },
+            {
+                id: "name",
+                header: "Nom",
+                accessorFn: (r) => r.item.nameFr,
+                sortingFn: (a, b) => a.original.item.nameFr.localeCompare(b.original.item.nameFr, "fr"),
+            },
+            {
+                id: "achat",
+                header: "Achat",
+                accessorFn: (r) => r.achat,
+                cell: (info) => priceCell(info.getValue<number>()),
+            },
+            {
+                id: "demande",
+                header: "Demande",
+                accessorFn: (r) => r.demande,
+                cell: (info) => priceCell(info.getValue<number>()),
+            },
+            {
+                id: "owned",
+                header: "Possédé",
+                accessorFn: (r) => r.owned,
+                enableSorting: hasKey,
+                sortingFn: (a, b) => Number(a.original.owned) - Number(b.original.owned),
+                cell: ({ row }) => (hasKey ? <OwnershipBadge ownership={row.original.owned ? "all" : "none"} /> : "—"),
+            },
+        ],
+        [hasKey],
+    );
+
     if (!collection) {
         return (
-            <>
+            <div className="space-y-2">
                 <p>Collection introuvable.</p>
-                <Link to="/">← Retour</Link>
-            </>
+                <Link className="text-blue-600 hover:underline dark:text-blue-400" to="/">
+                    ← Retour
+                </Link>
+            </div>
         );
     }
 
-    const rows = [...collection.rows].sort((a, b) => a.achat - b.achat);
+    const ownedCount = collection.rows.filter((r) => r.owned).length;
 
     return (
-        <>
-            <p><Link to="/">← Retour</Link></p>
-            <h2>{collection.name}</h2>
-            <p>
-                Total : achat {formatGold(collection.achat)} · demande {formatGold(collection.demande)}
-            </p>
+        <div className="space-y-4">
+            <Link className="text-sm text-blue-600 hover:underline dark:text-blue-400" to="/">
+                ← Retour
+            </Link>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>Nom</th>
-                        <th>Achat</th>
-                        <th>Demande</th>
-                        <th>Possédé</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {rows.map((r) => (
-                        <tr key={r.item.id}>
-                            <td>
-                                {r.item.icon && (
-                                    <img src={r.item.icon} alt="" width={32} height={32} loading="lazy" />
-                                )}
-                            </td>
-                            <td>{r.item.nameFr}</td>
-                            <td>{r.achat ? formatGold(r.achat) : "—"}</td>
-                            <td>{r.demande ? formatGold(r.demande) : "—"}</td>
-                            <td>{hasKey ? (r.owned ? "Oui" : "Non") : "—"}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </>
+            <div>
+                <h2 className="text-lg font-semibold">{collection.label}</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Total : achat {formatGold(collection.achat)} · demande {formatGold(collection.demande)}
+                    {hasKey && ` · ${ownedCount}/${collection.rows.length} possédés`}
+                </p>
+            </div>
+
+            <DataTable
+                data={collection.rows}
+                columns={columns}
+                initialSorting={[{ id: "achat", desc: false }]}
+                getRowId={(r) => String(r.item.id)}
+            />
+        </div>
     );
 }

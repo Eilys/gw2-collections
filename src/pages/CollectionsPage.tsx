@@ -1,10 +1,12 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
+import type { ColumnDef } from "@tanstack/react-table";
+import DataTable from "../components/DataTable";
+import OwnershipBadge from "../components/OwnershipBadge";
 import { formatGold } from "../logic/format";
-import { ownershipLabel } from "../logic/labels";
-import { sortCollections } from "../logic/sort";
-import type { SortDirection, SortKey } from "../logic/sort";
-import type { CollectionSummary } from "../types";
+import type { CollectionSummary, Ownership } from "../types";
+
+const ownershipOrder: Record<Ownership, number> = { none: 0, partial: 1, all: 2 };
 
 interface Props {
     collections: CollectionSummary[];
@@ -12,49 +14,57 @@ interface Props {
 }
 
 export default function CollectionsPage({ collections, hasKey }: Props) {
-    const [sortKey, setSortKey] = useState<SortKey>("achat");
-    const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
-
-    const sorted = useMemo(
-        () => sortCollections(collections, sortKey, sortDirection),
-        [collections, sortKey, sortDirection],
+    const columns = useMemo<ColumnDef<CollectionSummary>[]>(
+        () => [
+            {
+                id: "label",
+                header: "Collection",
+                accessorFn: (c) => c.label,
+                sortingFn: (a, b) => a.original.label.localeCompare(b.original.label, "fr"),
+                cell: ({ row }) => (
+                    <Link
+                        className="font-medium text-blue-600 hover:underline dark:text-blue-400"
+                        to={`/collections/${encodeURIComponent(row.original.name)}`}
+                    >
+                        {row.original.label}
+                    </Link>
+                ),
+            },
+            {
+                id: "achat",
+                header: "Achat",
+                accessorFn: (c) => c.achat,
+                cell: (info) => <span className="tabular-nums">{formatGold(info.getValue<number>())}</span>,
+            },
+            {
+                id: "demande",
+                header: "Demande",
+                accessorFn: (c) => c.demande,
+                cell: (info) => <span className="tabular-nums">{formatGold(info.getValue<number>())}</span>,
+            },
+            {
+                id: "ownership",
+                header: "Possédé",
+                accessorFn: (c) => c.ownership,
+                enableSorting: hasKey,
+                sortingFn: (a, b) => ownershipOrder[a.original.ownership] - ownershipOrder[b.original.ownership],
+                cell: ({ row }) => (hasKey ? <OwnershipBadge ownership={row.original.ownership} /> : "—"),
+            },
+            {
+                id: "count",
+                header: "Items",
+                accessorFn: (c) => c.rows.length,
+            },
+        ],
+        [hasKey],
     );
 
-    function toggleSort(key: SortKey) {
-        if (key === sortKey) {
-            setSortDirection((d) => (d === "asc" ? "desc" : "asc"));
-        } else {
-            setSortKey(key);
-            setSortDirection("asc");
-        }
-    }
-
-    function indicator(key: SortKey) {
-        return key === sortKey ? (sortDirection === "asc" ? " ▲" : " ▼") : "";
-    }
-
     return (
-        <table>
-            <thead>
-                <tr>
-                    <th><button onClick={() => toggleSort("name")}>Collection{indicator("name")}</button></th>
-                    <th><button onClick={() => toggleSort("achat")}>Achat{indicator("achat")}</button></th>
-                    <th><button onClick={() => toggleSort("demande")}>Demande{indicator("demande")}</button></th>
-                    <th><button onClick={() => toggleSort("ownership")}>Possédé{indicator("ownership")}</button></th>
-                    <th><button onClick={() => toggleSort("count")}>Items{indicator("count")}</button></th>
-                </tr>
-            </thead>
-            <tbody>
-                {sorted.map((c) => (
-                    <tr key={c.name}>
-                        <td><Link to={`/collections/${encodeURIComponent(c.name)}`}>{c.name}</Link></td>
-                        <td>{formatGold(c.achat)}</td>
-                        <td>{formatGold(c.demande)}</td>
-                        <td>{hasKey ? ownershipLabel[c.ownership] : "—"}</td>
-                        <td>{c.rows.length}</td>
-                    </tr>
-                ))}
-            </tbody>
-        </table>
+        <DataTable
+            data={collections}
+            columns={columns}
+            initialSorting={[{ id: "achat", desc: false }]}
+            getRowId={(c) => c.name}
+        />
     );
 }

@@ -23,6 +23,7 @@ export interface ItemRow {
 
 export interface CollectionSummary {
     name: string;
+    label: string;
     rows: ItemRow[];
     achat: number;
     demande: number;

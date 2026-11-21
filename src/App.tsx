@@ -1,79 +1,35 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import { clearApiKey, loadApiKey, saveApiKey } from "./api/apiKey";
-import { loadCatalog } from "./api/catalog";
-import { createApi } from "./api/gw2";
-import { fetchPrices } from "./api/prices";
-import { fetchUnlockedSkins } from "./api/skins";
-import { collectionNames } from "./data/collectionNames";
+import { useCatalogItems, usePrices, useUnlockedSkins } from "./api/queries";
+import { collectionNames, collectionNamesFr, exclusions } from "./data/collectionNames";
 import { buildCollections } from "./logic/collections";
 import CollectionDetailPage from "./pages/CollectionDetailPage";
 import CollectionsPage from "./pages/CollectionsPage";
-import type { CatalogItem, Price } from "./types";
 
-const api = createApi();
+const NO_SKINS = new Set<number>();
 
 export default function App() {
-    const [items, setItems] = useState<CatalogItem[]>([]);
-    const [prices, setPrices] = useState<Map<number, Price>>(new Map());
     const [apiKey, setApiKey] = useState(loadApiKey());
     const [keyInput, setKeyInput] = useState("");
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [skinsResult, setSkinsResult] = useState<{
-        key: string;
-        skins: Set<number>;
-        error: string | null;
-    } | null>(null);
 
-    useEffect(() => {
-        (async () => {
-            try {
-                const catalog = await loadCatalog();
-                const relevant = catalog.items.filter((i) =>
-                    collectionNames.some((n) => i.nameEn.includes(n)),
-                );
-                setItems(relevant);
-                setPrices(await fetchPrices(api, relevant.map((i) => i.id)));
-            } catch (e) {
-                setError(e instanceof Error ? e.message : String(e));
-            } finally {
-                setLoading(false);
-            }
-        })();
-    }, []);
+    const catalog = useCatalogItems();
+    const items = catalog.data;
+    const priceIds = useMemo(() => items?.map((i) => i.id) ?? [], [items]);
+    const prices = usePrices(priceIds);
+    const skins = useUnlockedSkins(apiKey);
 
-    useEffect(() => {
-        if (!apiKey) return;
-        let cancelled = false;
-
-        fetchUnlockedSkins(apiKey)
-            .then((skins) => {
-                if (!cancelled) setSkinsResult({ key: apiKey, skins, error: null });
-            })
-            .catch((e) => {
-                if (!cancelled) {
-                    setSkinsResult({
-                        key: apiKey,
-                        skins: new Set(),
-                        error: e instanceof Error ? e.message : String(e),
-                    });
-                }
-            });
-
-        return () => {
-            cancelled = true;
-        };
-    }, [apiKey]);
-
-    const current = skinsResult?.key === apiKey ? skinsResult : null;
-    const unlocked = useMemo(() => current?.skins ?? new Set<number>(), [current]);
-    const keyError = current?.error ?? null;
-
-    const collections = useMemo(
-        () => buildCollections(collectionNames, items, prices, unlocked),
-        [items, prices, unlocked],
-    );
+    const collections = useMemo(() => {
+        if (!items || !prices.data) return [];
+        return buildCollections(
+            collectionNames,
+            items,
+            prices.data,
+            skins.data ?? NO_SKINS,
+            exclusions,
+            collectionNamesFr,
+        );
+    }, [items, prices.data, skins.data]);
 
     function submitKey() {
         const key = keyInput.trim();
@@ -88,39 +44,77 @@ export default function App() {
         setApiKey("");
     }
 
-    if (loading) return <p>Chargement…</p>;
-    if (error) return <p>Erreur : {error}</p>;
+    if (catalog.isPending || prices.isPending) {
+        return <p className="p-6 text-gray-500 dark:text-gray-400">Chargement…</p>;
+    }
+
+    const loadError = catalog.error ?? (prices.data ? null : prices.error);
+    if (loadError) {
+        return <p className="p-6 text-red-600 dark:text-red-400">Erreur : {loadError.message}</p>;
+    }
+
+    const updatedAt = new Date(prices.dataUpdatedAt).toLocaleTimeString("fr-FR", {
+        hour: "2-digit",
+        minute: "2-digit",
+    });
 
     return (
-        <>
-            <section>
+        <div className="mx-auto max-w-5xl space-y-4 p-4 sm:p-6">
+            <header className="flex flex-wrap items-center justify-between gap-3">
+                <h1 className="text-xl font-semibold">Collections GW2</h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Prix mis à jour à {updatedAt}
+                    {prices.isFetching && " · actualisation…"}
+                </p>
+            </header>
+
+            <section className="space-y-2">
                 {apiKey ? (
-                    <p>
-                        Clé API enregistrée dans ce navigateur.{" "}
-                        <button onClick={removeKey}>Supprimer</button>
-                    </p>
+                    <div className="flex items-center gap-3 text-sm">
+                        <span className="text-gray-600 dark:text-gray-300">
+                            Clé API enregistrée dans ce navigateur.
+                        </span>
+                        <button
+                            onClick={removeKey}
+                            className="cursor-pointer rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
+                        >
+                            Supprimer
+                        </button>
+                    </div>
                 ) : (
-                    <p>
+                    <div className="flex flex-wrap gap-2">
                         <input
                             type="password"
                             placeholder="Clé API (permissions account et unlocks)"
                             value={keyInput}
                             onChange={(e) => setKeyInput(e.target.value)}
-                            style={{ width: "28rem" }}
-                        />{" "}
-                        <button onClick={submitKey}>Enregistrer</button>
+                            className="w-full max-w-md rounded-md border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-900"
+                        />
+                        <button
+                            onClick={submitKey}
+                            className="cursor-pointer rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                        >
+                            Enregistrer
+                        </button>
+                    </div>
+                )}
+                {skins.isError && (
+                    <p className="text-sm text-red-600 dark:text-red-400">
+                        Erreur avec la clé : {skins.error.message}
                     </p>
                 )}
-                {keyError && <p>Erreur avec la clé : {keyError}</p>}
             </section>
 
             <Routes>
-                <Route path="/" element={<CollectionsPage collections={collections} hasKey={!!apiKey} />} />
+                <Route
+                    path="/"
+                    element={<CollectionsPage collections={collections} hasKey={!!skins.data} />}
+                />
                 <Route
                     path="/collections/:name"
-                    element={<CollectionDetailPage collections={collections} hasKey={!!apiKey} />}
+                    element={<CollectionDetailPage collections={collections} hasKey={!!skins.data} />}
                 />
             </Routes>
-        </>
+        </div>
     );
 }
