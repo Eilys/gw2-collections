@@ -1,0 +1,30 @@
+export interface CatalogItem {
+    id: number;
+    nameEn: string;
+    nameFr: string;
+    icon: string;
+    skinIds: number[];
+}
+
+export interface Price {
+    id: number;
+    buys: { unit_price: number };
+    sells: { unit_price: number };
+}
+
+export type Ownership = "all" | "partial" | "none";
+
+export interface ItemRow {
+    item: CatalogItem;
+    achat: number;     // sells.unit_price (BestAsk)
+    demande: number;   // buys.unit_price (BestBid)
+    owned: boolean;
+}
+
+export interface CollectionSummary {
+    name: string;
+    rows: ItemRow[];
+    achat: number;
+    demande: number;
+    ownership: Ownership;
+}
