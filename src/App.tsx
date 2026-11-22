@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import { clearApiKey, loadApiKey, saveApiKey } from "./api/apiKey";
 import { useCatalogItems, usePrices, useUnlockedSkins } from "./api/queries";
-import { collectionNames, collectionNamesFr, exclusions } from "./data/collectionNames";
+import { collectionNames, collectionNamesFr, exclusions, ticketOverrides } from "./data/collectionNames";
 import { buildCollections } from "./logic/collections";
 import CollectionDetailPage from "./pages/CollectionDetailPage";
 import CollectionsPage from "./pages/CollectionsPage";
@@ -29,6 +29,7 @@ export default function App() {
             skins.data ?? NO_SKINS,
             exclusions,
             collectionNamesFr,
+            ticketOverrides,
         );
     }, [items, prices.data, skins.data]);
 
@@ -60,7 +61,7 @@ export default function App() {
     });
 
     return (
-        <div className="mx-auto max-w-5xl space-y-4 p-4 sm:p-6">
+        <div className="mx-auto max-w-7xl space-y-4 p-4 sm:p-6">
             <header className="flex flex-nowrap items-center justify-between gap-3">
                 <h2 className="text-xl font-semibold text-red-600!">Collections GW2</h2>
                 <div className="space-y-1">

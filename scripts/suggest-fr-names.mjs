@@ -1,5 +1,5 @@
 import { readFile, writeFile } from "node:fs/promises";
-import { collectionNames } from "./names.mjs";
+import { collectionNames } from "../src/data/collectionNames.ts";
 
 const catalog = JSON.parse(await readFile("public/catalog.json", "utf8"));
 const stop = new Set(["de", "du", "des", "la", "le", "les", "et", "apparence", "pour", "en", "au", "aux", "à"]);

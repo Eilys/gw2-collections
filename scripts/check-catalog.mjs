@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { collectionNames } from "./names.mjs";
+import { collectionNames } from "../src/data/collectionNames.ts";
 
 const catalog = JSON.parse(await readFile("public/catalog.json", "utf8"));
 console.log("Items :", catalog.items.length);

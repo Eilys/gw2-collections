@@ -32,7 +32,7 @@ export default function CollectionsPage({ collections, hasKey }: Props) {
                 cell: ({ row }) => {
                     const icon = row.original.rows[0]?.item.icon;
                     return icon ? (
-                        <img src={icon} alt="" width={32} height={32} loading="lazy" className="rounded" />
+                        <img src={icon} alt="" loading="lazy" className="size-8 min-w-8 max-w-none rounded object-contain" />
                     ) : null;
                 },
             },
@@ -57,23 +57,36 @@ export default function CollectionsPage({ collections, hasKey }: Props) {
                 cell: (info) => <span className="tabular-nums">{formatGold(info.getValue<number>())}</span>,
             },
             {
+                id: "ticketAchat",
+                header: "Ticket (achat)",
+                accessorFn: (c) => c.ticketAchat,
+                cell: (info) => <span className="tabular-nums">{formatGold(info.getValue<number>())}</span>,
+            },
+            {
                 id: "demande",
                 header: "Demande",
                 accessorFn: (c) => c.demande,
                 cell: (info) => <span className="tabular-nums">{formatGold(info.getValue<number>())}</span>,
             },
             {
-                id: "ownership",
-                header: "Possédé",
-                accessorFn: (c) => c.ownership,
-                enableSorting: hasKey,
-                sortingFn: (a, b) => ownershipOrder[a.original.ownership] - ownershipOrder[b.original.ownership],
-                cell: ({ row }) => (hasKey ? <OwnershipBadge ownership={row.original.ownership} /> : "—"),
+                id: "ticketDemande",
+                header: "Ticket (demande)",
+                accessorFn: (c) => c.ticketDemande,
+                cell: (info) => <span className="tabular-nums">{formatGold(info.getValue<number>())}</span>,
             },
             {
-                id: "count",
-                header: "Items",
-                accessorFn: (c) => c.rows.length,
+                id: "ownership",
+                header: "Possédé",
+                accessorFn: (c) => (c.rows.length ? c.ownedCount / c.rows.length : 0),
+                enableSorting: hasKey,
+                cell: ({ row }) =>
+                    hasKey ? (
+                        <OwnershipBadge ownership={row.original.ownership}>
+                            {row.original.ownedCount}/{row.original.rows.length}
+                        </OwnershipBadge>
+                    ) : (
+                        "—"
+                    ),
             },
         ],
         [hasKey],

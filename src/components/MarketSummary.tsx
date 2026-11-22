@@ -9,7 +9,7 @@ export default function MarketSummary() {
 
     return (
         <div className="grid gap-3 sm:grid-cols-[1fr_2fr]">
-            <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+            <div className="flex flex-col items-center rounded-lg border border-gray-200 p-4 dark:border-gray-700">
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                     Gemmes pour {formatGold(GEM_RATE_COINS)}
                 </p>
@@ -30,6 +30,19 @@ export default function MarketSummary() {
                                 Achat <span className="font-semibold">{formatGold(price.sells.unit_price)}</span>
                                 {" · "}
                                 Demande <span className="font-semibold">{formatGold(price.buys.unit_price)}</span>
+                            </>
+                        ) : boxPrice.isError ? (
+                            "—"
+                        ) : (
+                            "…"
+                        )}
+                    </p>
+                    <p className="text-sm tabular-nums">
+                        {price ? (
+                            <>
+                                Achat x 7 <span className="font-semibold">{formatGold(price.sells.unit_price * 7)}</span>
+                                {" · "}
+                                Demande x 7 <span className="font-semibold">{formatGold(price.buys.unit_price * 7)}</span>
                             </>
                         ) : boxPrice.isError ? (
                             "—"

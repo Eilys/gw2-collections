@@ -1,5 +1,7 @@
 import type { CatalogItem, CollectionSummary, Price } from "../types";
 
+const DEFAULT_TICKETS = 7;
+
 export function buildCollections(
     names: string[],
     items: CatalogItem[],
@@ -7,6 +9,7 @@ export function buildCollections(
     unlockedSkins: Set<number>,
     exclusions: Record<string, string[]> = {},
     labels: Record<string, string> = {},
+    ticketOverrides: Record<string, number> = {},
 ): CollectionSummary[] {
     const result: CollectionSummary[] = [];
 
@@ -28,13 +31,21 @@ export function buildCollections(
         });
 
         const ownedCount = rows.filter((r) => r.owned).length;
+        const achat = rows.reduce((sum, r) => sum + r.achat, 0);
+        const demande = rows.reduce((sum, r) => sum + r.demande, 0);
+        const tickets = ticketOverrides[name] ?? DEFAULT_TICKETS;
+
         result.push({
             name,
             label: labels[name] || name,
             rows,
-            achat: rows.reduce((sum, r) => sum + r.achat, 0),
-            demande: rows.reduce((sum, r) => sum + r.demande, 0),
+            achat,
+            demande,
             ownership: ownedCount === rows.length ? "all" : ownedCount > 0 ? "partial" : "none",
+            ownedCount,
+            tickets,
+            ticketAchat: Math.round(achat / tickets),
+            ticketDemande: Math.round(demande / tickets),
         });
     }
     return result;

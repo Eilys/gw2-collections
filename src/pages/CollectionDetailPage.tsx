@@ -20,45 +20,48 @@ export default function CollectionDetailPage({ collections, hasKey }: Props) {
     const collection = collections.find((c) => c.name === name);
 
     const columns = useMemo<ColumnDef<ItemRow>[]>(
-        () => [
-            {
-                id: "icon",
-                header: "",
-                enableSorting: false,
-                accessorFn: (r) => r.item.icon,
-                cell: ({ row }) =>
-                    row.original.item.icon ? (
-                        <img src={row.original.item.icon} alt="" width={32} height={32} loading="lazy" className="rounded" />
-                    ) : null,
-            },
-            {
-                id: "name",
-                header: "Nom",
-                accessorFn: (r) => r.item.nameFr,
-                sortingFn: (a, b) => a.original.item.nameFr.localeCompare(b.original.item.nameFr, "fr"),
-            },
-            {
-                id: "achat",
-                header: "Achat",
-                accessorFn: (r) => r.achat,
-                cell: (info) => priceCell(info.getValue<number>()),
-            },
-            {
-                id: "demande",
-                header: "Demande",
-                accessorFn: (r) => r.demande,
-                cell: (info) => priceCell(info.getValue<number>()),
-            },
-            {
-                id: "owned",
-                header: "Possédé",
-                accessorFn: (r) => r.owned,
-                enableSorting: hasKey,
-                sortingFn: (a, b) => Number(a.original.owned) - Number(b.original.owned),
-                cell: ({ row }) => (hasKey ? <OwnershipBadge ownership={row.original.owned ? "all" : "none"} /> : "—"),
-            },
-        ],
-        [hasKey],
+        () => {
+
+            return [
+                {
+                    id: "icon",
+                    header: "",
+                    enableSorting: false,
+                    accessorFn: (r) => r.item.icon,
+                    cell: ({ row }) =>
+                        row.original.item.icon ? (
+                            <img src={row.original.item.icon} alt="" loading="lazy" className="size-8 min-w-8 max-w-none rounded object-contain" />
+                        ) : null,
+                },
+                {
+                    id: "name",
+                    header: "Nom",
+                    accessorFn: (r) => r.item.nameFr,
+                    sortingFn: (a, b) => a.original.item.nameFr.localeCompare(b.original.item.nameFr, "fr"),
+                },
+                {
+                    id: "achat",
+                    header: "Achat",
+                    accessorFn: (r) => r.achat,
+                    cell: (info) => priceCell(info.getValue<number>()),
+                },
+                {
+                    id: "demande",
+                    header: "Demande",
+                    accessorFn: (r) => r.demande,
+                    cell: (info) => priceCell(info.getValue<number>()),
+                },
+                {
+                    id: "owned",
+                    header: "Possédé",
+                    accessorFn: (r) => r.owned,
+                    enableSorting: hasKey,
+                    sortingFn: (a, b) => Number(a.original.owned) - Number(b.original.owned),
+                    cell: ({ row }) => (hasKey ? <OwnershipBadge ownership={row.original.owned ? "all" : "none"} /> : "—"),
+                },
+            ];
+        },
+        [hasKey]
     );
 
     if (!collection) {
@@ -75,7 +78,7 @@ export default function CollectionDetailPage({ collections, hasKey }: Props) {
     const ownedCount = collection.rows.filter((r) => r.owned).length;
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 flex flex-nowrap flex-col">
             <Link className="text-sm text-blue-600 hover:underline dark:text-blue-400" to="/">
                 ← Retour
             </Link>
@@ -85,6 +88,10 @@ export default function CollectionDetailPage({ collections, hasKey }: Props) {
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                     Total : achat {formatGold(collection.achat)} · demande {formatGold(collection.demande)}
                     {hasKey && ` · ${ownedCount}/${collection.rows.length} possédés`}
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {collection.tickets} tickets · {formatGold(collection.ticketAchat)} par ticket à l'achat ·{" "}
+                    {formatGold(collection.ticketDemande)} à la demande
                 </p>
             </div>
 

@@ -28,4 +28,8 @@ export interface CollectionSummary {
     achat: number;
     demande: number;
     ownership: Ownership;
+    ownedCount: number;
+    tickets: number;
+    ticketAchat: number;
+    ticketDemande: number;
 }

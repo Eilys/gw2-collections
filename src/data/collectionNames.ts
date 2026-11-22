@@ -20,11 +20,6 @@ export const collectionNames: string[] = [
     "Painter's Brilliance", "Synergetics", "Primeval",
 ];
 
-// Items à retirer d'une collection quand leur nom contient aussi un autre nom de la liste
-export const exclusions: Record<string, string[]> = {
-    Shadow: ["Shadow Chevalier"],
-};
-
 export const collectionNamesFr: Record<string, string> = {
     "Abaddon": "Abaddon", // 16/16
     "Abyss Stalker": "Rôdeur des abysses", // 17/17 | autres : rôdeur (17/17) | abysses (17/17)
@@ -118,4 +113,14 @@ export const collectionNamesFr: Record<string, string> = {
     "Painter's Brilliance": "Peintre brillant", // 17/17 | autres : peintre (17/17) | brillant (17/17)
     "Synergetics": "Synergétique", // 17/17
     "Primeval": "Primitif", // 11/17 ⚠ à vérifier
+};
+
+// Items à retirer d'une collection quand leur nom contient aussi un autre nom de la liste
+export const exclusions: Record<string, string[]> = {
+    Shadow: ["Shadow Chevalier"],
+};
+
+// Nombre de tickets du Lion noir donnés par collection quand elle diffère de 7
+export const ticketOverrides: Record<string, number> = {
+    "Winter's": 5,
 };
