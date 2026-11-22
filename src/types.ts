@@ -12,8 +12,6 @@ export interface Price {
     sells: { unit_price: number };
 }
 
-export type Ownership = "all" | "partial" | "none";
-
 export interface ItemRow {
     item: CatalogItem;
     achat: number;     // sells.unit_price (BestAsk)
@@ -27,7 +25,6 @@ export interface CollectionSummary {
     rows: ItemRow[];
     achat: number;
     demande: number;
-    ownership: Ownership;
     ownedCount: number;
     tickets: number;
     ticketAchat: number;

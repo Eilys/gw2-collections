@@ -4,11 +4,10 @@ import type { ColumnDef } from "@tanstack/react-table";
 import DataTable from "../components/DataTable";
 import OwnershipBadge from "../components/OwnershipBadge";
 import { formatGold } from "../logic/format";
-import type { CollectionSummary, Ownership } from "../types";
+import type { CollectionSummary } from "../types";
 import SearchInput from "../components/SearchInput";
 import { matchesSearch } from "../logic/search";
 
-const ownershipOrder: Record<Ownership, number> = { none: 0, partial: 1, all: 2 };
 
 interface Props {
     collections: CollectionSummary[];
