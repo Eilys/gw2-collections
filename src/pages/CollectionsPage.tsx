@@ -7,6 +7,8 @@ import { formatGold } from "../logic/format";
 import type { CollectionSummary } from "../types";
 import SearchInput from "../components/SearchInput";
 import { matchesSearch } from "../logic/search";
+import { BOX_ID, useBoxPrice } from "../api/queries";
+import { ticketTone, toneClasses, toneLegend, toneSwatch } from "../logic/tickets";
 
 interface Props {
     collections: CollectionSummary[];
@@ -15,6 +17,10 @@ interface Props {
 
 export default function CollectionsPage({ collections, hasKey }: Props) {
     const [search, setSearch] = useState("");
+    const boxPrice = useBoxPrice().data?.get(BOX_ID);
+    const box = boxPrice
+    ? { achat: boxPrice.sells.unit_price, demande: boxPrice.buys.unit_price }
+    : null;
 
     const filtered = useMemo(
         () => collections.filter((c) => matchesSearch(search, c.label, c.name)),
@@ -104,7 +110,21 @@ export default function CollectionsPage({ collections, hasKey }: Props) {
                 columns={columns}
                 initialSorting={[{ id: "achat", desc: false }]}
                 getRowId={(c) => c.name}
+                getRowClassName={(c) =>
+                    box ? toneClasses[ticketTone(c, box)] : "hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                }
             />
+
+            {box && (
+                <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
+                    {toneLegend.map(({ tone, label }) => (
+                        <li key={tone} className="flex items-center gap-1.5">
+                            <span className={`size-2.5 rounded-full ${toneSwatch[tone]}`} />
+                            {label}
+                        </li>
+                    ))}
+                </ul>
+            )}
 
             {filtered.length === 0 && (
                 <p className="text-sm text-gray-500 dark:text-gray-400">

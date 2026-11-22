@@ -7,9 +7,10 @@ interface Props<TData> {
     columns: ColumnDef<TData>[];
     initialSorting?: SortingState;
     getRowId?: (row: TData) => string;
+    getRowClassName?: (row: TData) => string;
 }
 
-export default function DataTable<TData>({ data, columns, initialSorting = [], getRowId }: Props<TData>) {
+export default function DataTable<TData>({ data, columns, initialSorting = [], getRowId, getRowClassName }: Props<TData>) {
     const [sorting, setSorting] = useState<SortingState>(initialSorting);
 
     const table = useReactTable({
@@ -58,7 +59,10 @@ export default function DataTable<TData>({ data, columns, initialSorting = [], g
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
                     {table.getRowModel().rows.map((row) => (
-                        <tr key={row.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                        <tr
+                            key={row.id}
+                            className={getRowClassName?.(row.original) ?? "hover:bg-gray-50 dark:hover:bg-gray-800/50"}
+                        >
                             {row.getVisibleCells().map((cell) => (
                                 <td key={cell.id} className="px-4 py-3 text-sm whitespace-nowrap">
                                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
