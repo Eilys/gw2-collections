@@ -9,6 +9,8 @@ import SearchInput from "../components/SearchInput";
 import { matchesSearch } from "../logic/search";
 import { BOX_ID, useBoxPrice } from "../api/queries";
 import { ticketTone, toneClasses, toneLegend, toneSwatch } from "../logic/tickets";
+import Switch from "../components/Switch";
+import { usePersistedState } from "../hooks/usePersistedState";
 
 interface Props {
     collections: CollectionSummary[];
@@ -17,14 +19,20 @@ interface Props {
 
 export default function CollectionsPage({ collections, hasKey }: Props) {
     const [search, setSearch] = useState("");
+    const [hideComplete, setHideComplete] = usePersistedState("gw2-hide-complete", false);
     const boxPrice = useBoxPrice().data?.get(BOX_ID);
     const box = boxPrice
     ? { achat: boxPrice.sells.unit_price, demande: boxPrice.buys.unit_price }
     : null;
 
     const filtered = useMemo(
-        () => collections.filter((c) => matchesSearch(search, c.label, c.name)),
-        [collections, search],
+        () =>
+            collections.filter(
+                (c) =>
+                    matchesSearch(search, c.label, c.name) &&
+                    !(hideComplete && hasKey && c.ownership === "all"),
+            ),
+        [collections, search, hideComplete, hasKey],
     );
     const columns = useMemo<ColumnDef<CollectionSummary>[]>(
         () => [
@@ -98,11 +106,18 @@ export default function CollectionsPage({ collections, hasKey }: Props) {
 
     return (
         <div className="space-y-3">
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                 <SearchInput value={search} onChange={setSearch} placeholder="Rechercher une collection…" />
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                     {filtered.length} / {collections.length} collections
                 </p>
+                <Switch
+                    checked={hideComplete && hasKey}
+                    onChange={setHideComplete}
+                    label="Masquer les collections complètes"
+                    disabled={!hasKey}
+                    title={hasKey ? undefined : "Enregistre ta clé API pour utiliser ce filtre"}
+                />
             </div>
 
             <DataTable
@@ -128,7 +143,7 @@ export default function CollectionsPage({ collections, hasKey }: Props) {
 
             {filtered.length === 0 && (
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Aucune collection ne correspond à « {search} ».
+                    {search ? `Aucune collection ne correspond à « ${search} ».` : "Aucune collection à afficher."}
                 </p>
             )}
         </div>

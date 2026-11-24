@@ -36,7 +36,7 @@ export const toneSwatch: Record<TicketTone, string> = {
 
 export const toneLegend: { tone: TicketTone; label: string }[] = [
     { tone: "green", label: "Ticket moins cher que la boîte (achat et demande)" },
-    { tone: "orange", label: "Moins cher à l'achat seulement" },
     { tone: "yellow", label: "Moins cher à la demande seulement" },
+    { tone: "orange", label: "Moins cher à l'achat seulement" },
     { tone: "red", label: "Plus cher dans les deux cas" },
 ];
